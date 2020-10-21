@@ -7,7 +7,7 @@ import * as Utils from "./Utils";
 import * as WordSplitter from "./WordSplitter";
 
 // This value defines balance between speed and memory utilization. The higher it is the faster it works and more memory consumes.
-const MatchGranuarityMaximum = 4;
+const MatchGranularityMaximum = 4;
 
 const specialCaseClosingTags = new Map([
   ["</strong>", 0],
@@ -62,7 +62,7 @@ class HtmlDiff {
     this.splitInputsIntoWords();
 
     this.matchGranularity = Math.min(
-      MatchGranuarityMaximum,
+      MatchGranularityMaximum,
       this.oldWords.length,
       this.newWords.length
     );
