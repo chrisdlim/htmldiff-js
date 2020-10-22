@@ -6,9 +6,6 @@ import Operation from "./Operation";
 import * as Utils from "./Utils";
 import * as WordSplitter from "./WordSplitter";
 
-// This value defines balance between speed and memory utilization. The higher it is the faster it works and more memory consumes.
-const MatchGranularityMaximum = 4;
-
 const specialCaseClosingTags = new Map([
   ["</strong>", 0],
   ["</em>", 0],
@@ -38,7 +35,16 @@ class HtmlDiff {
   ignoreWhiteSpaceDifferences: boolean;
   orphanMatchThreshold: number;
 
-  constructor(oldText: string, newText: string) {
+  constructor(
+    oldText: string,
+    newText: string,
+    options?: {
+      repeatingWordsAccuracy?: number;
+      ignoreWhiteSpaceDifferences?: boolean;
+      orphanMatchThreshold?: number;
+      matchGranularity?: number;
+    }
+  ) {
     this.content = [];
     this.newText = newText;
     this.oldText = oldText;
@@ -46,12 +52,13 @@ class HtmlDiff {
     this.specialTagDiffStack = [];
     this.newWords = [];
     this.oldWords = [];
-    this.matchGranularity = 0;
+    this.matchGranularity = options?.matchGranularity ?? 4;
     this.blockExpressions = [];
 
-    this.repeatingWordsAccuracy = 1.0;
-    this.ignoreWhiteSpaceDifferences = false;
-    this.orphanMatchThreshold = 0.0;
+    this.repeatingWordsAccuracy = options?.repeatingWordsAccuracy ?? 1;
+    this.ignoreWhiteSpaceDifferences =
+      options?.ignoreWhiteSpaceDifferences ?? false;
+    this.orphanMatchThreshold = options?.orphanMatchThreshold ?? 0;
   }
 
   build(): string {
@@ -62,10 +69,11 @@ class HtmlDiff {
     this.splitInputsIntoWords();
 
     this.matchGranularity = Math.min(
-      MatchGranularityMaximum,
+      this.matchGranularity,
       this.oldWords.length,
       this.newWords.length
     );
+
     const operations = this.operations();
 
     for (const item of operations) {
@@ -437,8 +445,17 @@ class HtmlDiff {
     return null;
   }
 
-  static execute(oldText: string, newText: string): string {
-    return new HtmlDiff(oldText, newText).build();
+  static execute(
+    oldText: string,
+    newText: string,
+    options?: {
+      repeatingWordsAccuracy?: number;
+      ignoreWhiteSpaceDifferences?: boolean;
+      orphanMatchThreshold?: number;
+      matchGranularity?: number;
+    }
+  ): string {
+    return new HtmlDiff(oldText, newText, options).build();
   }
 }
 
