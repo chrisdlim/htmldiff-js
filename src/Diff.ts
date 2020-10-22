@@ -183,7 +183,10 @@ class HtmlDiff {
               : this.specialTagDiffStack.pop();
 
           if (
-            !(openingTag === null || openingTag !== words[0].replace(/\//g, ""))
+            !(
+              openingTag === null ||
+              openingTag !== words[words.length - 1].replace(/\//g, "")
+            )
           ) {
             specialCaseTagInjection = "</ins>";
             specialCaseTagInjectionIsbefore = true;
