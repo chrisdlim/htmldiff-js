@@ -1,5 +1,5 @@
 {
-  "name": "htmldiff-js",
+  "name": "@ali-tas/htmldiff-js",
   "version": "1.0.6",
   "description": "JavaScript port of HtmlDiff.Net which is itself a C# port of HtmlDiff",
   "main": "./lib/index.js",
