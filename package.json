@@ -15,6 +15,14 @@
     "build-umd": "cross-env NODE_ENV=development webpack ./src/index.ts -o ./umd",
     "build-min": "cross-env NODE_ENV=production webpack ./src/index.ts -o ./umd"
   },
+  "files": [
+    "*.md",
+    "es6",
+    "lib",
+    "umd",
+    "src",
+    "types"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alitas/htmldiff-js.git"
