@@ -33,6 +33,7 @@ class HtmlDiff {
   blockExpressions: RegExp[];
   repeatingWordsAccuracy: number;
   ignoreWhiteSpaceDifferences: boolean;
+  combineWords: boolean;
   orphanMatchThreshold: number;
 
   constructor(
@@ -43,6 +44,7 @@ class HtmlDiff {
       ignoreWhiteSpaceDifferences?: boolean;
       orphanMatchThreshold?: number;
       matchGranularity?: number;
+      combineWords?: boolean;
     }
   ) {
     this.content = [];
@@ -59,6 +61,7 @@ class HtmlDiff {
     this.ignoreWhiteSpaceDifferences =
       options?.ignoreWhiteSpaceDifferences ?? false;
     this.orphanMatchThreshold = options?.orphanMatchThreshold ?? 0;
+    this.combineWords = options?.combineWords ?? false;
   }
 
   build(): string {
@@ -101,18 +104,18 @@ class HtmlDiff {
 
   performOperation(opp: Operation): void {
     switch (opp.action) {
-      case Action.equal:
+      case "equal":
         this.processEqualOperation(opp);
         break;
-      case Action.delete:
+      case "delete":
         this.processDeleteOperation(opp, "diffdel");
         break;
-      case Action.insert:
+      case "insert":
         this.processInsertOperation(opp, "diffins");
         break;
-      case Action.none:
+      case "none":
         break;
-      case Action.replace:
+      case "replace":
         this.processReplaceOperation(opp);
         break;
     }
@@ -275,25 +278,25 @@ class HtmlDiff {
       const matchStartsAtCurrentPositionInNew =
         positionInNew === match.startInNew;
 
-      let action;
+      let action: Action;
 
       if (
         !matchStartsAtCurrentPositionInOld &&
         !matchStartsAtCurrentPositionInNew
       ) {
-        action = Action.replace;
+        action = "replace";
       } else if (
         matchStartsAtCurrentPositionInOld &&
         !matchStartsAtCurrentPositionInNew
       ) {
-        action = Action.insert;
+        action = "insert";
       } else if (!matchStartsAtCurrentPositionInOld) {
-        action = Action.delete;
+        action = "delete";
       } else {
-        action = Action.none;
+        action = "none";
       }
 
-      if (action !== Action.none) {
+      if (action !== "none") {
         operations.push(
           new Operation(
             action,
@@ -308,7 +311,7 @@ class HtmlDiff {
       if (match.size !== 0) {
         operations.push(
           new Operation(
-            Action.equal,
+            "equal",
             match.startInOld,
             match.endInOld,
             match.startInNew,
@@ -321,10 +324,83 @@ class HtmlDiff {
       positionInNew = match.endInNew;
     }
 
-    return operations;
+    if (!this.combineWords) return operations;
+    else return this.combineOperations(operations);
   }
 
-  *removeOrphans(matches: Match[]): Generator<Match | null> {
+  combineOperations(operations: Operation[]): Operation[] {
+    const combinedOperations: Operation[] = [];
+
+    const operationIsWhitespace = (op: Operation) =>
+      Utils.isWhiteSpace(
+        this.oldWords
+          .filter((_word, pos) => pos >= op.startInOld && pos < op.endInOld)
+          .join("")
+      ) &&
+      Utils.isWhiteSpace(
+        this.newWords
+          .filter((_word, pos) => pos >= op.startInNew && pos < op.endInNew)
+          .join("")
+      );
+
+    const lastOperation = operations[operations.length - 1];
+    for (let index = 0; index < operations.length; index++) {
+      const operation = operations[index];
+
+      if (operation.action === "replace") {
+        let matchFound = false;
+
+        for (
+          let combineIndex = index + 1;
+          combineIndex < operations.length;
+          combineIndex++
+        ) {
+          const operationToCombine = operations[combineIndex];
+
+          if (
+            operationToCombine.action !== "replace" &&
+            operationToCombine.action === "equal" &&
+            !operationIsWhitespace(operationToCombine)
+          ) {
+            combinedOperations.push(
+              new Operation(
+                "replace",
+                operation.startInOld,
+                operationToCombine.startInOld,
+                operation.startInNew,
+                operationToCombine.startInNew
+              )
+            );
+            index = combineIndex - 1;
+            matchFound = true;
+            break;
+          }
+        }
+
+        if (!matchFound) {
+          combinedOperations.push(
+            new Operation(
+              "replace",
+              operation.startInOld,
+              lastOperation.endInOld,
+              operation.startInNew,
+              lastOperation.endInNew
+            )
+          );
+
+          break;
+        }
+      } else {
+        combinedOperations.push(operation);
+      }
+    }
+
+    return combinedOperations;
+  }
+
+  removeOrphans(matches: Match[]): Match[] {
+    const matchesWithoutOrphans: Match[] = [];
+
     let prev: Match = new Match(0, 0, 0);
     let curr: Match | null = null;
 
@@ -340,13 +416,13 @@ class HtmlDiff {
           prev.endInNew === curr.startInNew) ||
         (curr.endInOld === next.startInOld && curr.endInNew === next.startInNew)
       ) {
-        yield curr;
+        matchesWithoutOrphans.push(curr);
         prev = curr;
         curr = next;
         continue;
       }
 
-      const sumLength = (t: number, n: string) => t + n.length;
+      const sumLength = (sum: number, word: string) => sum + word.length;
 
       const oldDistanceInChars = this.oldWords
         .slice(prev.endInOld, next.startInOld)
@@ -362,60 +438,54 @@ class HtmlDiff {
         Math.max(oldDistanceInChars, newDistanceInChars) *
           this.orphanMatchThreshold
       ) {
-        yield curr;
+        matchesWithoutOrphans.push(curr);
       }
 
       prev = curr;
       curr = next;
     }
 
-    yield curr;
+    if (curr !== null) matchesWithoutOrphans.push(curr);
+
+    return matchesWithoutOrphans;
   }
 
   matchingBlocks(): Match[] {
-    const matchingBlocks: Match[] = [];
-    this.findMatchingBlocks(
+    return this.findMatchingBlocks(
       0,
       this.oldWords.length,
       0,
-      this.newWords.length,
-      matchingBlocks
+      this.newWords.length
     );
-    return matchingBlocks;
   }
 
   findMatchingBlocks(
     startInOld: number,
     endInOld: number,
     startInNew: number,
-    endInNew: number,
-    matchingBlocks: Match[]
-  ): void {
+    endInNew: number
+  ): Match[] {
+    if (startInOld >= endInOld || startInNew >= endInNew) return [];
+
     const match = this.findMatch(startInOld, endInOld, startInNew, endInNew);
 
-    if (match !== null) {
-      if (startInOld < match.startInOld && startInNew < match.startInNew) {
-        this.findMatchingBlocks(
-          startInOld,
-          match.startInOld,
-          startInNew,
-          match.startInNew,
-          matchingBlocks
-        );
-      }
+    if (match === null) return [];
 
-      matchingBlocks.push(match);
+    const preMatch = this.findMatchingBlocks(
+      startInOld,
+      match.startInOld,
+      startInNew,
+      match.startInNew
+    );
 
-      if (match.endInOld < endInOld && match.endInNew < endInNew) {
-        this.findMatchingBlocks(
-          match.endInOld,
-          endInOld,
-          match.endInNew,
-          endInNew,
-          matchingBlocks
-        );
-      }
-    }
+    const postMatch = this.findMatchingBlocks(
+      match.endInOld,
+      endInOld,
+      match.endInNew,
+      endInNew
+    );
+
+    return [...preMatch, match, ...postMatch];
   }
 
   findMatch(
@@ -456,6 +526,7 @@ class HtmlDiff {
       ignoreWhiteSpaceDifferences?: boolean;
       orphanMatchThreshold?: number;
       matchGranularity?: number;
+      combineWords?: boolean;
     }
   ): string {
     return new HtmlDiff(oldText, newText, options).build();

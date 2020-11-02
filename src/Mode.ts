@@ -1,8 +1,3 @@
-﻿const Mode = {
-  character: 0,
-  tag: 1,
-  whitespace: 2,
-  entity: 3,
-};
+﻿type Mode = "character" | "tag" | "whitespace" | "entity";
 
 export default Mode;

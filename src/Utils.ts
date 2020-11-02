@@ -1,7 +1,9 @@
-﻿const tagRegex = /^\s*<\/?[^>]+>\s*$/;
+﻿import XRegExp from "xregexp";
+
+const tagRegex = /^\s*<\/?[^>]+>\s*$/;
 const tagWordRegex = /<[^\s>]+/;
 const whitespaceRegex = /^(\s|&nbsp;)+$/;
-const wordRegex = /\S+/;
+const wordRegex = XRegExp("[\\p{Latin}\\p{Nd}@#]+");
 
 const specialCaseWordTags = ["<img"];
 

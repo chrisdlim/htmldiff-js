@@ -1,9 +1,3 @@
-﻿const Action = {
-  equal: 0,
-  delete: 1,
-  insert: 2,
-  none: 3,
-  replace: 4,
-};
+﻿type Action = "equal" | "delete" | "insert" | "none" | "replace";
 
 export default Action;

@@ -1,12 +1,14 @@
-﻿export default class Operation {
-  action: number;
+﻿import Action from "./Action";
+
+export default class Operation {
+  action: Action;
   startInOld: number;
   endInOld: number;
   startInNew: number;
   endInNew: number;
 
   constructor(
-    action: number,
+    action: Action,
     startInOld: number,
     endInOld: number,
     startInNew: number,
