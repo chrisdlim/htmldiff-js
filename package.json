@@ -1,6 +1,6 @@
 {
   "name": "@ali-tas/htmldiff-js",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "JavaScript port of HtmlDiff.Net which is itself a C# port of HtmlDiff",
   "main": "./lib/index.js",
   "module": "es6/index.js",
