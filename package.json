@@ -1,6 +1,6 @@
 {
   "name": "@ali-tas/htmldiff-js",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "JavaScript port of HtmlDiff.Net which is itself a C# port of HtmlDiff",
   "main": "./lib/index.js",
   "module": "es6/index.js",
@@ -65,7 +65,5 @@
     "webpack": "^5.3.2",
     "webpack-cli": "^4.1.0"
   },
-  "dependencies": {
-    "xregexp": "^4.4.0"
-  }
+  "dependencies": {}
 }
