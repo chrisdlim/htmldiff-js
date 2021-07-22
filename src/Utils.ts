@@ -18,7 +18,6 @@ function stripTagAttributes(word: string): string {
 
   if (tag) {
     word = tag + (word.endsWith("/>") ? "/>" : ">");
-    return word;
   }
 
   return word;

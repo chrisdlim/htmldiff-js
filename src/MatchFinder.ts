@@ -84,7 +84,6 @@ export default class MatchFinder {
 
   findMatch(): Match | null {
     this.indexNewWords();
-    this.removeRepeatingWords();
 
     if (this.wordIndices.size === 0) {
       return null;
@@ -139,19 +138,5 @@ export default class MatchFinder {
     return bestMatchSize !== 0
       ? new Match(bestMatchInOld, bestMatchInNew, bestMatchSize + blockSize - 1)
       : null;
-  }
-
-  // This method removes words that occur too many times. This way it reduces total count of comparison operations
-  // and as result the diff algoritm takes less time. But the side effect is that it may detect false differences of
-  // the repeating words.
-  removeRepeatingWords(): void {
-    const threshold =
-      this.newWords.length + this.options.repeatingWordsAccuracy;
-    const repeatingWords = Array.from(this.wordIndices.entries())
-      .filter((i) => i[1].length > threshold)
-      .map((i) => i[0]);
-    for (const w of repeatingWords) {
-      this.wordIndices.delete(w);
-    }
   }
 }

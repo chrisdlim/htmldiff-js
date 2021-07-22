@@ -20,7 +20,8 @@ const specialCaseClosingTags = new Map([
   ["</dfn>", 0],
 ]);
 
-const specialCaseOpeningTagRegex = /<((strong)|(b)|(i)|(dfn)|(em)|(big)|(small)|(u)|(sub)|(sup)|(strike)|(s))[>\s]+/gi;
+const specialCaseOpeningTagRegex =
+  /<((strong)|(b)|(i)|(dfn)|(em)|(big)|(small)|(u)|(sub)|(sup)|(strike)|(s))[>\s]+/gi;
 
 class HtmlDiff {
   content: string[];
@@ -84,10 +85,6 @@ class HtmlDiff {
     }
 
     return this.content.join("");
-  }
-
-  addBlockExpression(exp: RegExp): void {
-    this.blockExpressions.push(exp);
   }
 
   splitInputsIntoWords(): void {
