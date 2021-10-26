@@ -1,19 +1,17 @@
-﻿export default class Match {
+﻿type Match = {
   startInOld: number;
   startInNew: number;
+  endInOld: number;
+  endInNew: number;
   size: number;
+};
 
-  constructor(startInOld: number, startInNew: number, size: number) {
-    this.startInOld = startInOld;
-    this.startInNew = startInNew;
-    this.size = size;
-  }
+export const NoMatch = {
+  size: 0,
+  startInNew: 0,
+  endInNew: 0,
+  endInOld: 0,
+  startInOld: 0,
+};
 
-  get endInOld(): number {
-    return this.startInOld + this.size;
-  }
-
-  get endInNew(): number {
-    return this.startInNew + this.size;
-  }
-}
+export default Match;

@@ -1,11 +1,15 @@
 ﻿import Mode from "./Mode";
 import * as Utils from "./Utils";
 
-function convertHtmlToListOfWords(
+const convertHtmlToListOfWords = (
   text: string,
-  blockExpressions: RegExp[] | null
-): string[] {
-  const state: { mode: Mode; currentWord: string[]; words: string[] } = {
+  blockExpressions: readonly RegExp[] | null
+): readonly string[] => {
+  const state: {
+    mode: Mode;
+    currentWord: string[];
+    words: string[];
+  } = {
     mode: "character",
     currentWord: [],
     words: [],
@@ -31,7 +35,7 @@ function convertHtmlToListOfWords(
       // Check if we need to group the next text sequence/block
       let until = 0;
       if (blockLocations.has(index)) {
-        until = blockLocations.get(index);
+        until = blockLocations.get(index) ?? 0;
         isGrouping = true;
         groupingUntil = until;
       }
@@ -137,23 +141,30 @@ function convertHtmlToListOfWords(
   }
 
   return state.words;
-}
+};
 
-function addClearWordSwitchMode(
-  state: { mode: Mode; currentWord: string[]; words: string[] },
+const addClearWordSwitchMode = (
+  state: {
+    mode: Mode;
+    currentWord: readonly string[];
+    words: string[];
+  },
   character: string,
   mode: Mode
-) {
+) => {
   if (state.currentWord.length !== 0) {
     state.words.push(state.currentWord.join(""));
   }
 
   state.currentWord = [character];
   state.mode = mode;
-}
+};
 
-function findBlocks(text: string, blockExpressions: RegExp[] | null) {
-  const blockLocations = new Map();
+const findBlocks = (
+  text: string,
+  blockExpressions: readonly RegExp[] | null
+) => {
+  const blockLocations = new Map<number, number>();
 
   if (blockExpressions === null) {
     return blockLocations;
@@ -174,6 +185,6 @@ function findBlocks(text: string, blockExpressions: RegExp[] | null) {
   }
 
   return blockLocations;
-}
+};
 
 export { convertHtmlToListOfWords };

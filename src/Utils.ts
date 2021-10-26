@@ -5,15 +5,14 @@ const wordRegex = /(\p{Script_Extensions=Latin}|[\d@#])+/u;
 
 const specialCaseWordTags = ["<img"];
 
-function isTag(item: string): boolean {
-  if (specialCaseWordTags.some((re) => item !== null && item.startsWith(re))) {
-    return false;
-  }
+const isTag = (item: string): boolean => {
+  return (
+    !specialCaseWordTags.some((tag) => item !== null && item.startsWith(tag)) &&
+    tagRegex.test(item)
+  );
+};
 
-  return tagRegex.test(item);
-}
-
-function stripTagAttributes(word: string): string {
+const stripTagAttributes = (word: string): string => {
   const tag = tagWordRegex.exec(word)?.[0];
 
   if (tag) {
@@ -21,53 +20,25 @@ function stripTagAttributes(word: string): string {
   }
 
   return word;
-}
+};
 
-function wrapText(text: string, tagName: string, cssClass: string): string {
-  return [
-    "<",
-    tagName,
-    ' class="',
-    cssClass,
-    '">',
-    text,
-    "</",
-    tagName,
-    ">",
-  ].join("");
-}
+const wrapText = (text: string, tagName: string, cssClass: string): string =>
+  `<${tagName} class="${cssClass}">${text}</${tagName}>`;
 
-function isStartOfTag(val: string): boolean {
-  return val === "<";
-}
+const isStartOfTag = (val: string) => val === "<";
 
-function isEndOfTag(val: string): boolean {
-  return val === ">";
-}
+const isEndOfTag = (val: string) => val === ">";
 
-function isStartOfEntity(val: string): boolean {
-  return val === "&";
-}
+const isStartOfEntity = (val: string) => val === "&";
 
-function isEndOfEntity(val: string): boolean {
-  return val === ";";
-}
+const isEndOfEntity = (val: string) => val === ";";
 
-function isWhiteSpace(value: string): boolean {
-  return whitespaceRegex.test(value);
-}
+const isWhiteSpace = (value: string) => whitespaceRegex.test(value);
 
-function stripAnyAttributes(word: string): string {
-  if (isTag(word)) {
-    return stripTagAttributes(word);
-  }
+const stripAnyAttributes = (word: string): string =>
+  isTag(word) ? stripTagAttributes(word) : word;
 
-  return word;
-}
-
-function isWord(text: string): boolean {
-  return wordRegex.test(text);
-}
+const isWord = (text: string) => wordRegex.test(text);
 
 export {
   isTag,
