@@ -86,6 +86,11 @@ test.each([
     "The Dealer info,",
     'The Dealer<del class="diffmod">.</del><ins class="diffmod">&nbsp;info,</ins>',
   ],
+  [
+    "The Dealer.",
+    "Mr Dealer info,",
+    '<del class="diffmod">The</del><ins class="diffmod">Mr</ins> Dealer<del class="diffmod">.</del><ins class="diffmod">&nbsp;info,</ins>',
+  ],
 ])(
   "old text '%s', new text '%s' gives delta '%s'",
   (oldtext, newText, delta) => {
