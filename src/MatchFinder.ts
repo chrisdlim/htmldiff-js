@@ -1,12 +1,12 @@
-﻿import { MatchOptions } from ".";
-import Match from "./Match";
-import * as Utils from "./Utils";
+import type MatchOptions from './MatchOptions';
+import type Match from './Match';
+import * as Utils from './Utils';
 
-const putNewWord = (
+function putNewWord(
   block: string[],
   word: string,
-  blockSize: number
-): string | null => {
+  blockSize: number,
+): string | null {
   block.push(word);
 
   if (block.length > blockSize) {
@@ -17,36 +17,39 @@ const putNewWord = (
     return null;
   }
 
-  return block.join("");
-};
+  return block.join('');
+}
 
 // Converts the word to index-friendly value so it can be compared with other similar words
 
-const normalizeForIndex = (
+function normalizeForIndex(
   word: string,
-  ignoreWhiteSpaceDifferences: boolean
-): string => {
+  ignoreWhiteSpaceDifferences: boolean,
+): string {
   word = Utils.stripAnyAttributes(word);
   if (ignoreWhiteSpaceDifferences && Utils.isWhiteSpace(word)) {
-    return " ";
+    return ' ';
   }
 
   return word;
-};
+}
 
-const indexNewWords = (
+function indexNewWords(
   newWords: readonly string[],
   startIndex: number,
   endIndex: number,
-  options: MatchOptions
-): Map<string, number[]> => {
+  options: MatchOptions,
+): Map<string, number[]> {
   const wordIndices = new Map<string, number[]>();
   const block: string[] = [];
   for (let i = startIndex; i < endIndex; i++) {
+    const newWord = newWords[i];
+    if (newWord === undefined) continue;
+
     // if word is a tag, we should ignore attributes as attribute changes are not supported (yet)
     const word = normalizeForIndex(
-      newWords[i],
-      options.ignoreWhiteSpaceDifferences
+      newWord,
+      options.ignoreWhiteSpaceDifferences,
     );
     const key = putNewWord(block, word, options.blockSize);
 
@@ -62,17 +65,17 @@ const indexNewWords = (
   }
 
   return wordIndices;
-};
+}
 
-export const findMatch = (
+export function findMatch(
   oldWords: readonly string[],
   newWords: readonly string[],
   startInOld: number,
   endInOld: number,
   startInNew: number,
   endInNew: number,
-  options: MatchOptions
-): Match | null => {
+  options: MatchOptions,
+): Match | null {
   const wordIndices = indexNewWords(newWords, startInNew, endInNew, options);
 
   if (wordIndices.size === 0) {
@@ -88,9 +91,12 @@ export const findMatch = (
   const block: string[] = [];
 
   for (let indexInOld = startInOld; indexInOld < endInOld; indexInOld++) {
+    const oldWord = oldWords[indexInOld];
+    if (oldWord === undefined) continue;
+
     const word = normalizeForIndex(
-      oldWords[indexInOld],
-      options.ignoreWhiteSpaceDifferences
+      oldWord,
+      options.ignoreWhiteSpaceDifferences,
     );
     const index = putNewWord(block, word, blockSize);
 
@@ -131,4 +137,4 @@ export const findMatch = (
         size: matchSize,
       }
     : null;
-};
+}

@@ -1,3 +1,5 @@
+# README
+
 Typescript port of [htmldiff-js](https://github.com/dfoverdx/htmldiff-js), which is the JavaScript port of [HtmlDiff.NET](https://github.com/Rohland/htmldiff.net) which is itself a C# port of the Ruby implementation, [HtmlDiff](https://github.com/myobie/htmldiff/).
 
 ## Project Description
@@ -12,7 +14,7 @@ Further description can be found at this [blog post](https://web.archive.org/web
 
 ## Usage
 
-#### Html
+### Html
 
 ```html
 <html>
@@ -33,11 +35,11 @@ Further description can be found at this [blog post](https://web.archive.org/web
 #### JavaScript
 
 ```javascript
-import HtmlDiff from "htmldiff-js";
+import HtmlDiff from 'htmldiff-js';
 
-let oldHtml = document.getElementById("oldHtml");
-let newHtml = document.getElementById("newHtml");
-let diffHtml = document.getElementById("diffHtml");
+const oldHtml = document.getElementById('oldHtml');
+const newHtml = document.getElementById('newHtml');
+const diffHtml = document.getElementById('diffHtml');
 
 diffHtml.innerHTML = HtmlDiff.execute(oldHtml.innerHTML, newHtml.innerHTML);
 ```

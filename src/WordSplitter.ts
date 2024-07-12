@@ -1,16 +1,16 @@
-﻿import Mode from "./Mode";
-import * as Utils from "./Utils";
+import type Mode from './Mode';
+import * as Utils from './Utils';
 
-const convertHtmlToListOfWords = (
+function convertHtmlToListOfWords(
   text: string,
-  blockExpressions: readonly RegExp[] | null
-): readonly string[] => {
+  blockExpressions: readonly RegExp[] | null,
+): readonly string[] {
   const state: {
     mode: Mode;
     currentWord: string[];
     words: string[];
   } = {
-    mode: "character",
+    mode: 'character',
     currentWord: [],
     words: [],
   };
@@ -23,6 +23,7 @@ const convertHtmlToListOfWords = (
 
   for (let index = 0; index < text.length; index++) {
     const character = text[index];
+    if (character === undefined) continue;
 
     // Don't bother executing block checks if we don't have any blocks to check for!
     if (isBlockCheckRequired) {
@@ -43,19 +44,19 @@ const convertHtmlToListOfWords = (
       // if we are grouping, then we don't care about what type of character we have, it's going to be treated as a word
       if (isGrouping) {
         state.currentWord.push(character);
-        state.mode = "character";
+        state.mode = 'character';
         continue;
       }
     }
 
     switch (state.mode) {
-      case "character":
+      case 'character':
         if (Utils.isStartOfTag(character)) {
-          addClearWordSwitchMode(state, "<", "tag");
+          addClearWordSwitchMode(state, '<', 'tag');
         } else if (Utils.isStartOfEntity(character)) {
-          addClearWordSwitchMode(state, character, "entity");
+          addClearWordSwitchMode(state, character, 'entity');
         } else if (Utils.isWhiteSpace(character)) {
-          addClearWordSwitchMode(state, character, "whitespace");
+          addClearWordSwitchMode(state, character, 'whitespace');
         } else if (
           Utils.isWord(character) &&
           (state.currentWord.length === 0 ||
@@ -63,73 +64,73 @@ const convertHtmlToListOfWords = (
         ) {
           state.currentWord.push(character);
         } else {
-          addClearWordSwitchMode(state, character, "character");
+          addClearWordSwitchMode(state, character, 'character');
         }
 
         break;
 
-      case "tag":
+      case 'tag':
         if (Utils.isEndOfTag(character)) {
           state.currentWord.push(character);
-          state.words.push(state.currentWord.join(""));
+          state.words.push(state.currentWord.join(''));
 
           state.currentWord = [];
           state.mode = Utils.isWhiteSpace(character)
-            ? "whitespace"
-            : "character";
+            ? 'whitespace'
+            : 'character';
         } else {
           state.currentWord.push(character);
         }
 
         break;
 
-      case "whitespace":
+      case 'whitespace':
         if (Utils.isStartOfTag(character)) {
-          addClearWordSwitchMode(state, character, "tag");
+          addClearWordSwitchMode(state, character, 'tag');
         } else if (Utils.isStartOfEntity(character)) {
-          addClearWordSwitchMode(state, character, "entity");
+          addClearWordSwitchMode(state, character, 'entity');
         } else if (Utils.isWhiteSpace(character)) {
           state.currentWord.push(character);
         } else {
-          addClearWordSwitchMode(state, character, "character");
+          addClearWordSwitchMode(state, character, 'character');
         }
 
         break;
 
-      case "entity":
+      case 'entity':
         if (Utils.isStartOfTag(character)) {
-          addClearWordSwitchMode(state, character, "tag");
+          addClearWordSwitchMode(state, character, 'tag');
         } else if (Utils.isWhiteSpace(character)) {
-          addClearWordSwitchMode(state, character, "whitespace");
+          addClearWordSwitchMode(state, character, 'whitespace');
         } else if (Utils.isEndOfEntity(character)) {
           let switchToNextMode = true;
           if (state.currentWord.length !== 0) {
             state.currentWord.push(character);
-            state.words.push(state.currentWord.join(""));
+            state.words.push(state.currentWord.join(''));
 
-            //join &nbsp; entity with last whitespace
+            // join &nbsp; entity with last whitespace
             if (
               state.words.length > 2 &&
               Utils.isWhiteSpace(state.words[state.words.length - 2]) &&
               Utils.isWhiteSpace(state.words[state.words.length - 1])
             ) {
-              const w1 = state.words[state.words.length - 2];
-              const w2 = state.words[state.words.length - 1];
+              const w1 = state.words[state.words.length - 2] ?? '';
+              const w2 = state.words[state.words.length - 1] ?? '';
               state.words.splice(state.words.length - 2, 2);
               state.currentWord = [w1, w2];
-              state.mode = "whitespace";
+              state.mode = 'whitespace';
               switchToNextMode = false;
             }
           }
 
           if (switchToNextMode) {
             state.currentWord = [];
-            state.mode = "character";
+            state.mode = 'character';
           }
         } else if (Utils.isWord(character)) {
           state.currentWord.push(character);
         } else {
-          addClearWordSwitchMode(state, character, "character");
+          addClearWordSwitchMode(state, character, 'character');
         }
 
         break;
@@ -137,33 +138,30 @@ const convertHtmlToListOfWords = (
   }
 
   if (state.currentWord.length !== 0) {
-    state.words.push(state.currentWord.join(""));
+    state.words.push(state.currentWord.join(''));
   }
 
   return state.words;
-};
+}
 
-const addClearWordSwitchMode = (
+function addClearWordSwitchMode(
   state: {
     mode: Mode;
     currentWord: readonly string[];
     words: string[];
   },
   character: string,
-  mode: Mode
-) => {
+  mode: Mode,
+) {
   if (state.currentWord.length !== 0) {
-    state.words.push(state.currentWord.join(""));
+    state.words.push(state.currentWord.join(''));
   }
 
   state.currentWord = [character];
   state.mode = mode;
-};
+}
 
-const findBlocks = (
-  text: string,
-  blockExpressions: readonly RegExp[] | null
-) => {
+function findBlocks(text: string, blockExpressions: readonly RegExp[] | null) {
   const blockLocations = new Map<number, number>();
 
   if (blockExpressions === null) {
@@ -171,20 +169,20 @@ const findBlocks = (
   }
 
   for (const exp of blockExpressions) {
-    let m;
-    while ((m = exp.exec(text)) !== null) {
+    let m = exp.exec(text);
+    while (m !== null) {
       if (blockLocations.has(m.index)) {
         throw new Error(
-          "One or more block expressions result in a text sequence that overlaps. Current expression: " +
-            exp.toString()
+          `One or more block expressions result in a text sequence that overlaps. Current expression: ${exp.toString()}`,
         );
       }
 
       blockLocations.set(m.index, m.index + m[0].length);
+      m = exp.exec(text);
     }
   }
 
   return blockLocations;
-};
+}
 
 export { convertHtmlToListOfWords };

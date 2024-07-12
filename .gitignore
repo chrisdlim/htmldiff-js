@@ -1,10 +1,7 @@
 .DS_Store
 node_modules
-umd
-lib
-es6
+dist
 coverage
 npm-debug.log
-types
 build
 .vs/ 

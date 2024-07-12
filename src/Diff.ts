@@ -1,27 +1,28 @@
-﻿import Action from "./Action";
-import Match, { NoMatch } from "./Match";
-import { findMatch } from "./MatchFinder";
-import MatchOptions from "./MatchOptions";
-import Operation from "./Operation";
-import * as Utils from "./Utils";
-import * as WordSplitter from "./WordSplitter";
+import type Action from './Action';
+import type Match from './Match';
+import { NoMatch } from './Match';
+import { findMatch } from './MatchFinder';
+import type MatchOptions from './MatchOptions';
+import type Operation from './Operation';
+import * as Utils from './Utils';
+import * as WordSplitter from './WordSplitter';
 
 const specialCaseClosingTags = new Map([
-  ["</strong>", 0],
-  ["</em>", 0],
-  ["</b>", 0],
-  ["</i>", 0],
-  ["</big>", 0],
-  ["</small>", 0],
-  ["</u>", 0],
-  ["</sub>", 0],
-  ["</strike>", 0],
-  ["</s>", 0],
-  ["</dfn>", 0],
+  ['</strong>', 0],
+  ['</em>', 0],
+  ['</b>', 0],
+  ['</i>', 0],
+  ['</big>', 0],
+  ['</small>', 0],
+  ['</u>', 0],
+  ['</sub>', 0],
+  ['</strike>', 0],
+  ['</s>', 0],
+  ['</dfn>', 0],
 ]);
 
 const specialCaseOpeningTagRegex =
-  /<((strong)|(b)|(i)|(dfn)|(em)|(big)|(small)|(u)|(sub)|(sup)|(strike)|(s))[>\s]+/gi;
+  /<(?:strong|[biu]|dfn|em|big|small|sub|sup|strike|s)[>\s]+/gi;
 
 type DiffOptions = {
   repeatingWordsAccuracy?: number;
@@ -31,11 +32,11 @@ type DiffOptions = {
   combineWords?: boolean;
 };
 
-const build = (
+function build(
   oldText: string,
   newText: string,
-  options?: DiffOptions
-): string => {
+  options?: DiffOptions,
+): string {
   if (oldText === newText) {
     return newText;
   }
@@ -45,7 +46,7 @@ const build = (
   const matchGranularity = Math.min(
     options?.matchGranularity ?? 4,
     oldWords.length,
-    newWords.length
+    newWords.length,
   );
 
   const operations = getOperations(
@@ -55,153 +56,153 @@ const build = (
     options?.orphanMatchThreshold ?? 0,
     matchGranularity,
     options?.repeatingWordsAccuracy ?? 1,
-    options?.ignoreWhiteSpaceDifferences ?? false
+    options?.ignoreWhiteSpaceDifferences ?? false,
   );
 
   const specialTagDiffStack: string[] = [];
 
   const content = operations.map((operation) =>
-    performOperation(operation, oldWords, newWords, specialTagDiffStack)
+    performOperation(operation, oldWords, newWords, specialTagDiffStack),
   );
-  return content.join("");
-};
+  return content.join('');
+}
 
-const splitInputsIntoWords = (
+function splitInputsIntoWords(
   oldText: string,
   newText: string,
-  blockExpressions: RegExp[]
-) => {
+  blockExpressions: RegExp[],
+) {
   const oldWords = WordSplitter.convertHtmlToListOfWords(
     oldText,
-    blockExpressions
+    blockExpressions,
   );
   const newWords = WordSplitter.convertHtmlToListOfWords(
     newText,
-    blockExpressions
+    blockExpressions,
   );
   return { oldWords, newWords };
-};
+}
 
-const performOperation = (
+function performOperation(
   operation: Readonly<Operation>,
   oldWords: readonly string[],
   newWords: readonly string[],
-  specialTagDiffStack: string[]
-): string => {
+  specialTagDiffStack: string[],
+): string {
   switch (operation.action) {
-    case "equal":
+    case 'equal':
       return processEqualOperation(operation, newWords);
-    case "delete":
+    case 'delete':
       return processDeleteOperation(
         operation,
-        "diffdel",
+        'diffdel',
         oldWords,
-        specialTagDiffStack
+        specialTagDiffStack,
       );
-    case "insert":
+    case 'insert':
       return processInsertOperation(
         operation,
-        "diffins",
+        'diffins',
         newWords,
-        specialTagDiffStack
+        specialTagDiffStack,
       );
-    case "replace":
+    case 'replace':
       return processReplaceOperation(
         operation,
         oldWords,
         newWords,
-        specialTagDiffStack
+        specialTagDiffStack,
       );
-    case "none":
+    case 'none':
     default:
-      return "";
+      return '';
   }
-};
+}
 
-const processReplaceOperation = (
+function processReplaceOperation(
   operation: Readonly<Operation>,
   oldWords: readonly string[],
   newWords: readonly string[],
-  specialTagDiffStack: string[]
-): string => {
+  specialTagDiffStack: string[],
+): string {
   const deletedContent = processDeleteOperation(
     operation,
-    "diffmod",
+    'diffmod',
     oldWords,
-    specialTagDiffStack
+    specialTagDiffStack,
   );
   const insertedContent = processInsertOperation(
     operation,
-    "diffmod",
+    'diffmod',
     newWords,
-    specialTagDiffStack
+    specialTagDiffStack,
   );
   return `${deletedContent}${insertedContent}`;
-};
+}
 
-const processInsertOperation = (
+function processInsertOperation(
   operation: Operation,
   cssClass: string,
   newWords: readonly string[],
-  specialTagDiffStack: string[]
-): string => {
+  specialTagDiffStack: string[],
+): string {
   const text = newWords.filter(
-    (_s, pos) => pos >= operation.startInNew && pos < operation.endInNew
+    (_s, pos) => pos >= operation.startInNew && pos < operation.endInNew,
   );
-  return insertTag("ins", cssClass, text, specialTagDiffStack);
-};
+  return insertTag('ins', cssClass, text, specialTagDiffStack);
+}
 
-const processDeleteOperation = (
+function processDeleteOperation(
   operation: Operation,
   cssClass: string,
   oldWords: readonly string[],
-  specialTagDiffStack: string[]
-): string => {
+  specialTagDiffStack: string[],
+): string {
   const text = oldWords.filter(
-    (_s, pos) => pos >= operation.startInOld && pos < operation.endInOld
+    (_s, pos) => pos >= operation.startInOld && pos < operation.endInOld,
   );
-  return insertTag("del", cssClass, text, specialTagDiffStack);
-};
+  return insertTag('del', cssClass, text, specialTagDiffStack);
+}
 
-const processEqualOperation = (
+function processEqualOperation(
   operation: Operation,
-  newWords: readonly string[]
-): string => {
+  newWords: readonly string[],
+): string {
   const result = newWords.filter(
-    (_s, pos) => pos >= operation.startInNew && pos < operation.endInNew
+    (_s, pos) => pos >= operation.startInNew && pos < operation.endInNew,
   );
-  return result.join("");
-};
+  return result.join('');
+}
 
-const insertTag = (
+function insertTag(
   tag: string,
   cssClass: string,
   words: string[],
-  specialTagDiffStack: string[]
-): string => {
+  specialTagDiffStack: string[],
+): string {
   const content: string[] = [];
 
-  while (words.length) {
+  while (words[0] !== undefined) {
     const nonTags = extractConsecutiveWords(
       words,
-      (x: string) => !Utils.isTag(x)
+      (x: string) => !Utils.isTag(x),
     );
 
-    let specialCaseTagInjection = "";
+    let specialCaseTagInjection = '';
     let specialCaseTagInjectionIsbefore = false;
 
     if (nonTags.length !== 0) {
-      const text = Utils.wrapText(nonTags.join(""), tag, cssClass);
+      const text = Utils.wrapText(nonTags.join(''), tag, cssClass);
       content.push(text);
     } else {
       if (specialCaseOpeningTagRegex.test(words[0])) {
         const matchedTag = words[0].match(specialCaseOpeningTagRegex);
         if (matchedTag !== null) {
-          const matchedDiff = "<" + matchedTag[0].replace(/(<|>| )/g, "") + ">";
+          const matchedDiff = `<${matchedTag[0].replace(/[<> ]/g, '')}>`;
           specialTagDiffStack.push(matchedDiff);
         }
         specialCaseTagInjection = '<ins class="mod">';
-        if (tag === "del") {
+        if (tag === 'del') {
           words.shift();
 
           while (
@@ -218,14 +219,14 @@ const insertTag = (
         if (
           !(
             openingTag === null ||
-            openingTag !== words[words.length - 1].replace(/\//g, "")
+            openingTag !== words[words.length - 1]?.replace(/\//g, '')
           )
         ) {
-          specialCaseTagInjection = "</ins>";
+          specialCaseTagInjection = '</ins>';
           specialCaseTagInjectionIsbefore = true;
         }
 
-        if (tag === "del") {
+        if (tag === 'del') {
           words.shift();
 
           while (words.length > 0 && specialCaseClosingTags.has(words[0])) {
@@ -241,32 +242,34 @@ const insertTag = (
       if (specialCaseTagInjectionIsbefore) {
         content.push(
           specialCaseTagInjection +
-            extractConsecutiveWords(words, Utils.isTag).join("")
+            extractConsecutiveWords(words, Utils.isTag).join(''),
         );
       } else {
         content.push(
-          extractConsecutiveWords(words, Utils.isTag).join("") +
-            specialCaseTagInjection
+          extractConsecutiveWords(words, Utils.isTag).join('') +
+            specialCaseTagInjection,
         );
       }
     }
   }
 
-  return content.join("");
-};
+  return content.join('');
+}
 
-const extractConsecutiveWords = (
+function extractConsecutiveWords(
   words: string[],
-  condition: (word: string) => boolean
-): readonly string[] => {
+  condition: (word: string) => boolean,
+): readonly string[] {
   let indexOfFirstTag = 0;
   let tagFound = false;
 
   for (let i = 0; i < words.length; i++) {
     const word = words[i];
 
-    if (i === 0 && word === " ") {
-      words[i] = "&nbsp;";
+    if (word === undefined) continue;
+
+    if (i === 0 && word === ' ') {
+      words[i] = '&nbsp;';
     }
 
     if (!condition(word)) {
@@ -288,17 +291,17 @@ const extractConsecutiveWords = (
     words.splice(0, words.length);
     return items;
   }
-};
+}
 
-const getOperations = (
+function getOperations(
   oldWords: readonly string[],
   newWords: readonly string[],
   combineWords: boolean,
   orphanMatchThreshold: number,
   matchGranularity: number,
   repeatingWordsAccuracy: number,
-  ignoreWhiteSpaceDifferences: boolean
-): Operation[] => {
+  ignoreWhiteSpaceDifferences: boolean,
+): Operation[] {
   let positionInOld = 0;
   let positionInNew = 0;
   const operations: Operation[] = [];
@@ -311,7 +314,7 @@ const getOperations = (
     newWords,
     matchGranularity,
     repeatingWordsAccuracy,
-    ignoreWhiteSpaceDifferences
+    ignoreWhiteSpaceDifferences,
   );
   matches.push({
     startInOld: oldWordsCount,
@@ -325,7 +328,7 @@ const getOperations = (
     matches,
     oldWords,
     newWords,
-    orphanMatchThreshold
+    orphanMatchThreshold,
   );
 
   for (const match of matchesWithoutOrphans) {
@@ -342,19 +345,19 @@ const getOperations = (
       !matchStartsAtCurrentPositionInOld &&
       !matchStartsAtCurrentPositionInNew
     ) {
-      action = "replace";
+      action = 'replace';
     } else if (
       matchStartsAtCurrentPositionInOld &&
       !matchStartsAtCurrentPositionInNew
     ) {
-      action = "insert";
+      action = 'insert';
     } else if (!matchStartsAtCurrentPositionInOld) {
-      action = "delete";
+      action = 'delete';
     } else {
-      action = "none";
+      action = 'none';
     }
 
-    if (action !== "none") {
+    if (action !== 'none') {
       operations.push({
         action,
         startInOld: positionInOld,
@@ -366,7 +369,7 @@ const getOperations = (
 
     if (match.size !== 0) {
       operations.push({
-        action: "equal",
+        action: 'equal',
         startInOld: match.startInOld,
         endInOld: match.endInOld,
         startInNew: match.startInNew,
@@ -380,32 +383,33 @@ const getOperations = (
 
   if (!combineWords) return operations;
   else return combineOperations(operations, oldWords, newWords);
-};
+}
 
-const combineOperations = (
+function combineOperations(
   operations: Operation[],
   oldWords: readonly string[],
-  newWords: readonly string[]
-): Operation[] => {
+  newWords: readonly string[],
+): Operation[] {
   const combinedOperations: Operation[] = [];
 
   const operationIsWhitespace = (op: Operation) =>
     Utils.isWhiteSpace(
       oldWords
         .filter((_word, pos) => pos >= op.startInOld && pos < op.endInOld)
-        .join("")
+        .join(''),
     ) &&
     Utils.isWhiteSpace(
       newWords
         .filter((_word, pos) => pos >= op.startInNew && pos < op.endInNew)
-        .join("")
+        .join(''),
     );
 
   const lastOperation = operations[operations.length - 1];
   for (let index = 0; index < operations.length; index++) {
     const operation = operations[index];
+    if (operation === undefined) continue;
 
-    if (operation.action === "replace") {
+    if (operation.action === 'replace') {
       let matchFound = false;
 
       for (
@@ -414,14 +418,15 @@ const combineOperations = (
         combineIndex++
       ) {
         const operationToCombine = operations[combineIndex];
+        if (operationToCombine === undefined) continue;
 
         if (
-          operationToCombine.action !== "replace" &&
-          operationToCombine.action === "equal" &&
+          operationToCombine.action !== 'replace' &&
+          operationToCombine.action === 'equal' &&
           !operationIsWhitespace(operationToCombine)
         ) {
           combinedOperations.push({
-            action: "replace",
+            action: 'replace',
             startInOld: operation.startInOld,
             endInOld: operationToCombine.startInOld,
             startInNew: operation.startInNew,
@@ -433,9 +438,9 @@ const combineOperations = (
         }
       }
 
-      if (!matchFound) {
+      if (!matchFound && lastOperation) {
         combinedOperations.push({
-          action: "replace",
+          action: 'replace',
           startInOld: operation.startInOld,
           endInOld: lastOperation.endInOld,
           startInNew: operation.startInNew,
@@ -450,14 +455,14 @@ const combineOperations = (
   }
 
   return combinedOperations;
-};
+}
 
-const removeOrphans = (
+function removeOrphans(
   matches: Match[],
   oldWords: readonly string[],
   newWords: readonly string[],
-  orphanMatchThreshold: number
-): Match[] => {
+  orphanMatchThreshold: number,
+): Match[] {
   const matchesWithoutOrphans: Match[] = [];
 
   let prev: Match = { ...NoMatch };
@@ -506,15 +511,15 @@ const removeOrphans = (
   if (curr !== null) matchesWithoutOrphans.push(curr);
 
   return matchesWithoutOrphans;
-};
+}
 
-const getMatchingBlocks = (
+function getMatchingBlocks(
   oldWords: readonly string[],
   newWords: readonly string[],
   matchGranularity: number,
   repeatingWordsAccuracy: number,
-  ignoreWhiteSpaceDifferences: boolean
-): Match[] => {
+  ignoreWhiteSpaceDifferences: boolean,
+): Match[] {
   return findMatchingBlocks(
     0,
     oldWords.length,
@@ -524,11 +529,11 @@ const getMatchingBlocks = (
     newWords,
     matchGranularity,
     repeatingWordsAccuracy,
-    ignoreWhiteSpaceDifferences
+    ignoreWhiteSpaceDifferences,
   );
-};
+}
 
-const findMatchingBlocks = (
+function findMatchingBlocks(
   startInOld: number,
   endInOld: number,
   startInNew: number,
@@ -537,8 +542,8 @@ const findMatchingBlocks = (
   newWords: readonly string[],
   matchGranularity: number,
   repeatingWordsAccuracy: number,
-  ignoreWhiteSpaceDifferences: boolean
-): Match[] => {
+  ignoreWhiteSpaceDifferences: boolean,
+): Match[] {
   if (startInOld >= endInOld || startInNew >= endInNew) return [];
 
   const match = findMatchByGranularity(
@@ -550,7 +555,7 @@ const findMatchingBlocks = (
     newWords,
     matchGranularity,
     repeatingWordsAccuracy,
-    ignoreWhiteSpaceDifferences
+    ignoreWhiteSpaceDifferences,
   );
 
   if (match === null) return [];
@@ -564,7 +569,7 @@ const findMatchingBlocks = (
     newWords,
     matchGranularity,
     repeatingWordsAccuracy,
-    ignoreWhiteSpaceDifferences
+    ignoreWhiteSpaceDifferences,
   );
 
   const postMatch = findMatchingBlocks(
@@ -576,13 +581,13 @@ const findMatchingBlocks = (
     newWords,
     matchGranularity,
     repeatingWordsAccuracy,
-    ignoreWhiteSpaceDifferences
+    ignoreWhiteSpaceDifferences,
   );
 
   return [...preMatch, match, ...postMatch];
-};
+}
 
-const findMatchByGranularity = (
+function findMatchByGranularity(
   startInOld: number,
   endInOld: number,
   startInNew: number,
@@ -591,8 +596,8 @@ const findMatchByGranularity = (
   newWords: readonly string[],
   matchGranularity: number,
   repeatingWordsAccuracy: number,
-  ignoreWhiteSpaceDifferences: boolean
-): Match | null => {
+  ignoreWhiteSpaceDifferences: boolean,
+): Match | null {
   for (let i = matchGranularity; i > 0; i--) {
     const options: MatchOptions = {
       blockSize: i,
@@ -607,7 +612,7 @@ const findMatchByGranularity = (
       endInOld,
       startInNew,
       endInNew,
-      options
+      options,
     );
 
     if (match !== null) {
@@ -616,10 +621,10 @@ const findMatchByGranularity = (
   }
 
   return null;
-};
+}
 
-const execute = (oldText: string, newText: string, options?: DiffOptions) => {
+function execute(oldText: string, newText: string, options?: DiffOptions) {
   return build(oldText, newText, options);
-};
+}
 
 export default { execute };

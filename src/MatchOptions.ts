@@ -1,4 +1,4 @@
-﻿type MatchOptions = {
+type MatchOptions = {
   blockSize: number;
   repeatingWordsAccuracy: number;
   ignoreWhiteSpaceDifferences: boolean;
