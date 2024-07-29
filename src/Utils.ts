@@ -3,7 +3,7 @@ const tagWordRegex = /<[^\s>]+/;
 const whitespaceRegex = /^(?:\s|&nbsp;)+$/;
 const wordRegex = /[\p{Script_Extensions=Latin}\d@#]+/u;
 
-const specialCaseWordTags = ['<img'];
+const specialCaseWordTags = ['<img', '<input'];
 
 function isTag(item: string): boolean {
   return (
