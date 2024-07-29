@@ -3,7 +3,9 @@ import HtmlDiff from '../Diff';
 
 // tests from: https://github.com/Rohland/htmldiff.net/blob/master/Test.HtmlDiff/HtmlDiffSpecTests.cs
 
-it.each([
+it.only.each([
+
+  ['', '<input type="checkbox" /> my checkbox', '<ins class="diffins"><input type="checkbox" /> my checkbox</ins>'],
   [
     'a word is here',
     'a nother word is there',
