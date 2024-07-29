@@ -4,15 +4,12 @@
   "version": "2.0.0",
   "packageManager": "pnpm@9.5.0+sha512.140036830124618d624a2187b50d04289d5a087f326c9edfc0ccd733d76c4f52c3a313d4fc148794a2a9d81553016004e6742e8cf850670268a7387fc220c903",
   "description": "JavaScript port of HtmlDiff.Net which is itself a C# port of HtmlDiff",
-  "author": "Ali Tas",
+  "author": "Chris Lim",
   "license": "ISC",
-  "homepage": "https://github.com/alitas/htmldiff-js#readme",
+  "homepage": "https://github.com/chrisdlim/htmldiff-js#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alitas/htmldiff-js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/alitas/htmldiff-js/issues"
+    "url": "git+https://github.com/chrisdlim/htmldiff-js.git"
   },
   "keywords": [
     "HtmlDiff",
